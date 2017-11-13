@@ -140,6 +140,8 @@ visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["w
 #visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["weight"], maxiter=500)
 igraph.plot(gLinks, **visual_style)
 
+a='hola'
+
 
 
 
