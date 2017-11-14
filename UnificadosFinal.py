@@ -6,13 +6,11 @@ This is a temporary script file.
 """
 import pandas as pd
 import numpy as np
-from igraph import *
-import cairo
 import json 
 import random
 import re 
 import math
- 
+import networkx as nx 
 
 #Funcion que convierte articulo en numero
 
@@ -37,8 +35,11 @@ def AreaNum(str):
            if not x:
                x.append('30')
            return x[0]
-    return str       
+    return str
+# Creamos una funcion que nos transforma toda la columna en strings y elimina los puntos los espacios y demas por vacio.
+       
 # leer los dos archivos de Fiscalia y Policia
+    
 
 Fiscalia = pd.read_csv("CAPTRUAS - Fiscalia.csv",";", encoding = "latin-1")
 Policia = pd.read_csv("CAPTURAS - Policia.csv", "\t")
@@ -102,6 +103,12 @@ Unificado.iloc[vaciosArea,4]="30"
 # Mapeamos las letras a valores numericos
 Unificado['AREA'] = Unificado.apply(lambda x: AreaNum(x['AREA']), axis = 1)
 Unificado['ARTICULO'] = Unificado.apply(lambda x: ArticuloNum(x['ARTICULO']), axis = 1)
+# Cambiamos Todo por string y eliminamos el .0 y los espacios
+Unificado[["NOTICIA","DOCUMENTO"]]= Unificado[["NOTICIA","DOCUMENTO"]].applymap(str)
+Unificado[["NOTICIA","DOCUMENTO"]]= Unificado[["NOTICIA","DOCUMENTO"]].applymap(lambda x: x.replace(".0","") )
+Unificado[["NOTICIA","DOCUMENTO"]]= Unificado[["NOTICIA","DOCUMENTO"]].applymap(lambda x: x.replace(" ","") )
+Unificado[["NOTICIA","DOCUMENTO"]]= Unificado[["NOTICIA","DOCUMENTO"]].applymap(lambda x: x.replace(".","") )
+Unificado = Unificado.drop_duplicates(subset=['NOTICIA','DOCUMENTO','FECHA_HECHO'])
 # Vamos a crear todos para poder hacer los links y los graphs
 
 Nodos1 = Unificado[['NOTICIA','AREA']]
@@ -110,37 +117,51 @@ Nodos2 = Nodos2.rename(columns = {Nodos2.columns.values[0] : 'NODOS'})
 Nodos1 = Nodos1.rename(columns = {Nodos1.columns.values[0] : 'NODOS'})
 
 Nodos = Nodos1.append(Nodos2)
-
-Nodos['NODOS'] = Nodos['NODOS'].replace(".","")
-Nodos['AREA'] = Nodos['AREA'].replace(".","")
 Nodos = Nodos.drop_duplicates()
 # Vamos a crear los links 
 
 Links = Unificado[['DOCUMENTO','NOTICIA','COLOR']]
-Links['DOCUMENTO'] = Links['DOCUMENTO'].replace(".","")
-Links['NOTICIA'] = Links['NOTICIA'].replace(".","")
 
-Li=[tuple(x) for x in Links[['DOCUMENTO','NOTICIA']].to_records(index=False)]
-No=list(Nodos['NODOS'])
-gLinks=Graph.TupleList(Li[0:1000], No[0:1000])
-gLinks.to_undirected()
 
-clusters = gLinks.community_multilevel( weights=None, return_levels=False)
-member = clusters.membership
-new_cmap = ['#'+''.join([random.choice('0123456789abcdef') for x in range(6)]) for z in range(len(clusters))]
-vcolors = {v: new_cmap[i] for i, c in enumerate(clusters) for v in c}
-gLinks.vs["color"] = [vcolors[v] for v in gLinks.vs.indices]
-ecolors = {e.index: new_cmap[member[e.tuple[0]]] if member[e.tuple[0]]==member[e.tuple[1]] else "#e0e0e0" for e in gLinks.es}
-eweights = {e.index: (3*g.vcount()) if member[e.tuple[0]]==member[e.tuple[1]] else 0.1 for e in gLinks.es}
-gLinks.es["weight"] = [eweights[e.index] for e in gLinks.es]
-gLinks.es["color"] = [ecolors[e] for e in gLinks.es.indices]
+# vamos a crear nuestro grafo usando Networkx y links 
 
-visual_style=dict()
-visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["weight"], maxiter=500, area=2 ** 3, repulserad=2 ** 3)
-#visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["weight"], maxiter=500)
-igraph.plot(gLinks, **visual_style)
+gLinks = nx.from_pandas_dataframe( Links,'DOCUMENTO', 'NOTICIA', edge_attr=None, create_using=None)
 
-a='hola'
+B = sorted(nx.connected_components(gLinks), key = len, reverse=True)
+C = [ X for X in B if len(X) > 2] 
+
+
+
+
+
+
+
+
+
+
+
+#
+#Li=[tuple(x) for x in Links[['DOCUMENTO','NOTICIA']].to_records(index=False)]
+#No=list(Nodos['NODOS'])
+#gLinks=Graph.TupleList(Li[0:1000], No[0:1000])
+#gLinks.to_undirected()
+#
+#clusters = gLinks.community_multilevel( weights=None, return_levels=False)
+#member = clusters.membership
+#new_cmap = ['#'+''.join([random.choice('0123456789abcdef') for x in range(6)]) for z in range(len(clusters))]
+#vcolors = {v: new_cmap[i] for i, c in enumerate(clusters) for v in c}
+#gLinks.vs["color"] = [vcolors[v] for v in gLinks.vs.indices]
+#ecolors = {e.index: new_cmap[member[e.tuple[0]]] if member[e.tuple[0]]==member[e.tuple[1]] else "#e0e0e0" for e in gLinks.es}
+#eweights = {e.index: (3*g.vcount()) if member[e.tuple[0]]==member[e.tuple[1]] else 0.1 for e in gLinks.es}
+#gLinks.es["weight"] = [eweights[e.index] for e in gLinks.es]
+#gLinks.es["color"] = [ecolors[e] for e in gLinks.es.indices]
+#
+#visual_style=dict()
+#visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["weight"], maxiter=500, area=2 ** 3, repulserad=2 ** 3)
+##visual_style["layout"] = gLinks.layout_fruchterman_reingold(weights=gLinks.es["weight"], maxiter=500)
+#igraph.plot(gLinks, **visual_style)
+#
+#a='hola'
 
 
 
