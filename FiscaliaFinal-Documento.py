@@ -12,7 +12,6 @@ import News
 from News import News
 #Variable de entrada: ID_PERSONA o NOTICIA
 
-ID = input('Escriba el numero de ID_PERSONA o NOTICIA    \n') 
 #Funcion que convierte articulo en numero
 def ArticuloNum(frase):
     try:
@@ -24,17 +23,17 @@ def ArticuloNum(frase):
         if not l:
             l.append('093')
         return l[0]
-# Creamos una funcion que captura los numeros del area 
 
-       
+ 
 # leer archivo de Fiscalia
 Fiscalia = pd.read_csv("CAPTRUAS - Fiscalia.csv",";", encoding = "latin-1")
 
 # Quitamos las comillas de fiscalia
 Fiscalia2=Fiscalia[['NOTICIA','DOCUMENTO','TITULO','ARTICULO','FECHA_HECHO','PRIMER_APELLIDO']]
+Fiscalia2.dropna(subset=['DOCUMENTO'], inplace=True)
 Fiscalia2= Fiscalia2.applymap(str)
 Fiscalia2['NOTICIA'] =  Fiscalia2['NOTICIA'].str.replace("'","")
-Fiscalia2 = Fiscalia2.drop_duplicates(subset=['NOTICIA','ID_PERSONA'])
+Fiscalia2 = Fiscalia2.drop_duplicates(subset=['NOTICIA','DOCUMENTO'])
 
 # Asignaremos un color a los delitos para colorear los nodos
 Lista_Titulos = list(Fiscalia2['TITULO'].drop_duplicates())
@@ -46,10 +45,11 @@ Fiscalia2.insert(len(Fiscalia2.columns),'COLOR',COLOR)
 # Mapeamos las letras a valores numericos en ARTICULO
 Fiscalia2['ARTICULO'] = Fiscalia2.apply(lambda x: ArticuloNum(x['ARTICULO']), axis = 1)
 
+ID = input('Escriba el numero de ID_PERSONA o NOTICIA    \n') 
 # vamos a crear nuestro grafo usando Networkx 
 
-grafoFiscalia = nx.from_pandas_dataframe(Fiscalia2,'ID_PERSONA', 'NOTICIA', edge_attr=None, create_using = nx.DiGraph())
-grafoFiscalia2 = nx.from_pandas_dataframe(Fiscalia2,'ID_PERSONA', 'NOTICIA', edge_attr=None, create_using = None)
+grafoFiscalia = nx.from_pandas_dataframe(Fiscalia2,'DOCUMENTO', 'NOTICIA', edge_attr=None, create_using = nx.DiGraph())
+grafoFiscalia2 = nx.from_pandas_dataframe(Fiscalia2,'DOCUMENTO', 'NOTICIA', edge_attr=None, create_using = None)
 ClasesConexas = sorted(nx.connected_components(grafoFiscalia2), key = len, reverse=True)
 
 #Creamos el subgrafo correspondiente al ID_PERSONA o NOTICIA
@@ -84,7 +84,7 @@ P9999=np.percentile(Cardinales,99.99)
 Cardinales=[c for c in Cardinales if c>P9999]
 C=list(ClasesConexas[10])
 IdsC=[Codigo for Codigo in C if len(Codigo)==8]
-IntegranteBanda=Fiscalia.loc[Fiscalia['ID_PERSONA']==int(IdsC[0])] 
+IntegranteBanda=Fiscalia.loc[Fiscalia['DOCUMENTO']==int(IdsC[0])] 
 Nombre=IntegranteBanda.iloc[0,17],IntegranteBanda.iloc[0,19],IntegranteBanda.iloc[0,20]
 #Fiscalia3=pd.read_pickle('Fiscalia2')
 
