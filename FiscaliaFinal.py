@@ -7,7 +7,9 @@ import json
 import random
 import re 
 import math
-import networkx as nx 
+import networkx as nx
+import News
+from News import News
 #Variable de entrada: ID_PERSONA o NOTICIA
 
 ID = input('Escriba el numero de ID_PERSONA o NOTICIA    \n') 
@@ -75,6 +77,15 @@ with open('grafoJson.json', 'w') as outfile:
     
 Fiscalia2.to_pickle('Fiscalia2')
 
+
+#Las redes del Quantil 0.01% superior - Las más interconectadas
+Cardinales=[len(c) for c in ClasesConexas]
+P9999=np.percentile(Cardinales,99.99)
+Cardinales=[c for c in Cardinales if c>P9999]
+C=list(ClasesConexas[10])
+IdsC=[Codigo for Codigo in C if len(Codigo)==8]
+IntegranteBanda=Fiscalia.loc[Fiscalia['ID_PERSONA']==int(IdsC[0])] 
+Nombre=IntegranteBanda.iloc[0,17],IntegranteBanda.iloc[0,19],IntegranteBanda.iloc[0,20]
 #Fiscalia3=pd.read_pickle('Fiscalia2')
 
 #Mostrar los peores casos Quantil 10 superior
