@@ -8,8 +8,8 @@ import random
 import re 
 import math
 import networkx as nx
-import News
-from News import News
+#import News
+#from News import News
 #Variable de entrada: ID_PERSONA o NOTICIA
 
 ID = input('Escriba el numero de ID_PERSONA o NOTICIA    \n') 
@@ -72,21 +72,21 @@ EdgesID=list(H_ID.edges())
 No=[{'id':n,'group':25} for n in NodesID]
 Li=[{'source': e[0], 'target': e[1], 'value': random.randrange(0,8)} for e in EdgesID]
 grafoJson={'nodes':No,'links':Li}
-with open('grafoJson.json', 'w') as outfile:
+with open('grafoJsonFiscalia.json', 'w') as outfile:
     json.dump(grafoJson, outfile)
     
 Fiscalia2.to_pickle('Fiscalia2')
 
-
-#Las redes del Quantil 0.01% superior - Las más interconectadas
-Cardinales=[len(c) for c in ClasesConexas]
-P9999=np.percentile(Cardinales,99.99)
-Cardinales=[c for c in Cardinales if c>P9999]
-C=list(ClasesConexas[10])
-IdsC=[Codigo for Codigo in C if len(Codigo)==8]
-IntegranteBanda=Fiscalia.loc[Fiscalia['ID_PERSONA']==int(IdsC[0])] 
-Nombre=IntegranteBanda.iloc[0,17],IntegranteBanda.iloc[0,19],IntegranteBanda.iloc[0,20]
-#Fiscalia3=pd.read_pickle('Fiscalia2')
+#
+##Las redes del Quantil 0.01% superior - Las más interconectadas
+#Cardinales=[len(c) for c in ClasesConexas]
+#P9999=np.percentile(Cardinales,99.99)
+#Cardinales=[c for c in Cardinales if c>P9999]
+#C=list(ClasesConexas[10])
+#IdsC=[Codigo for Codigo in C if len(Codigo)==8]
+#IntegranteBanda=Fiscalia.loc[Fiscalia['ID_PERSONA']==int(IdsC[0])] 
+#Nombre=IntegranteBanda.iloc[0,17],IntegranteBanda.iloc[0,19],IntegranteBanda.iloc[0,20]
+##Fiscalia3=pd.read_pickle('Fiscalia2')
 
 #Mostrar los peores casos Quantil 10 superior
 #Mayoresa2 = [ X for X in ClasesConexas if len(X) > 2] 
