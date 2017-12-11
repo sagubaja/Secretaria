@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import json 
@@ -9,6 +10,7 @@ import re
 import math
 import networkx as nx
 import News
+from News import News
 #Funcion que convierte articulo en numero
 def ArticuloNum(frase):
     try:
@@ -20,8 +22,15 @@ def ArticuloNum(frase):
         if not l:
             l.append('093')
         return l[0]
-Estacion = "ESTACION E-19 CIUDAD BOLIVAR" 
-ID = '99263 - CORREDOR ZAMORA YANIG ADRIAN'  
+Estacion = "ESTACION E-03 SANTA FE" 
+print("ID de alguien para la Estación " + Estacion + ' ?y/n')
+respuesta =input()
+if respuesta == 'y':
+    print("Introduzca el ID")
+    ID = input()
+print("Procesando...")
+TamaNodos=50
+#ID = '99263 - CORREDOR ZAMORA YANIG ADRIAN'  
 
 ##leer archivo de Fiscalia y policia
 #Fiscalia = pd.read_csv("CAPTRUAS - Fiscalia.csv",";", encoding = "latin-1")
@@ -40,9 +49,8 @@ Policia = Policia.applymap(str)
 #Fiscalia2.insert(len(Fiscalia2.columns),'COLOR',COLOR)
 ## Mapeamos las letras a valores numericos en ARTICULO
 Policia2 = Policia[["JURISESTACIÓNÁREA","NUMEROUNICODENUNCIAS","NOMBRES","APELLIDOS","IDENTIFICACION"]]
-Policia2=Policia2.applymap(str)
 Policia2['IDENTIFICACION']=Policia2['IDENTIFICACION'].str.replace(".0","")
-Policia2['Alias']=Policia2['IDENTIFICACION']+' - '+Policia2['APELLIDOS']+' '+Policia2['NOMBRES']
+Policia2['Alias']=Policia2['IDENTIFICACION']+' - '+Policia2['NOMBRES']+' '+Policia2['APELLIDOS']
 logico=Policia2.apply(lambda x: (x.loc['NUMEROUNICODENUNCIAS']=='nan') and (x.loc['IDENTIFICACION']=='nan'), axis = 1 )
 Policia2=Policia2.loc[~logico]
 logico1= Policia2.apply(lambda x: x.loc['NUMEROUNICODENUNCIAS']=='nan',axis = 1)
@@ -63,10 +71,21 @@ grafoPolicia2 = nx.from_pandas_dataframe(Policia2,'Alias', 'NUMEROUNICODENUNCIAS
 ClasesConexas = sorted(nx.connected_components(grafoPolicia2), key = len, reverse=True)
 
 #Creamos el subgrafo correspondiente al ID_PERSONA o NOTICIA
-for c in ClasesConexas:
-    if ID in c:
-        H_ID=grafoPolicia.subgraph(list(c))
-                  
+i=0
+t=len(ClasesConexas[i])
+if respuesta=='y':
+    for c in ClasesConexas:
+        if ID in c:
+            H_ID=grafoPolicia.subgraph(list(c))
+else:
+    if len(ClasesConexas[0])<TamaNodos:
+        c=ClasesConexas[0]
+    else:
+        while t>TamaNodos:
+            c=ClasesConexas[i]
+            t=len(c)
+            i+=1
+    H_ID=grafoPolicia.subgraph(list(c))                        
 
 nx.draw(H_ID, with_labels=True, font_weight='bold')
 
@@ -80,36 +99,47 @@ EdgesID=list(H_ID.edges())
 No=[{'id':n,'group':Color1[n]} for n in NodesID]
 Li=[{'source': e[0], 'target': e[1], 'value': random.randrange(0,8)} for e in EdgesID]
 grafoJson={'nodes':No,'links':Li}
-with open('grafoJsonCiudadBolivarPrueba.json', 'w') as outfile:
+with open(Estacion + str(TamaNodos) + '.json', 'w') as outfile:
     json.dump(grafoJson, outfile)
     
 #Fiscalia2.to_pickle('Fiscalia2')
 
 #Codigo para buscar noticias
-Nombres=list()
-for n in NodesID:
-    try:
-        if '-' in NodesID[0]:
-            Nombres.append(n.split('- ')[1])  
-    except: 
-        pass      
-Busquedas=[n+'+hurto+microtrafico' for n in Nombres]
-Textos1=[]
-j=0
-for q in Busquedas:
-    Textos1=[Nombres[j]]
-    j+=1
-    try:
-        Resultados=News(q)
-    except:
-        pass
-    for r in Resultados:
+MonthtoNum={'jan':'01','feb':'02','mar':'03','apr':'04','may':'05','jun':'06','jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12'}
+NombreNoticiaFecha=[(li['source'].split('- ')[1],li['target']) for li in Li]
+Fechas=list()
+for i in range(len(NombreNoticiaFecha)):
+    Fech=Policia.loc[Policia['NUMEROUNICODENUNCIAS']==NombreNoticiaFecha[i][1]]['FECHA_HECHO'].iloc[0]
+    Rango=Fech[5:9]+MonthtoNum[Fech[2:5]]+Fech[0:2]
+    Fechas.append(Rango)
+NombreNoticiaFecha=[(li['source'].split('- ')[1],li['target'],Rango) for li,Rango in zip(Li,Fechas)]
+
+BusquedaNombres = [NombreNoticiaFecha[0]]
+for tup in NombreNoticiaFecha[1:]:
+    if tup not in [t[0] for t in BusquedaNombres]:
+        BusquedaNombres.append(tup)
+
+DF=Policia.loc[Policia['NUMEROUNICODENUNCIAS']==NombreNoticiaFecha[0][1]]
+
+Textos=[]
+print("Desea Buscar las noticias en Google de los " + str(len(Nombres)) + "mimbros de la Banda" + " ?y/n")
+respuesta2 =input()
+if respuesta2=='y':
+    j=0
+    for q in Busquedas:
+        Textos.append(Nombres[j])
+        j+=1
         try:
-            Textos.append(r['title'])
+            Resultados=News(q)
         except:
             pass
-        try:
-            Textos.append(r['snippet'])
-        except:
-            pass
-    a=0
+        for r in Resultados:
+            try:
+                Textos.append(r['title'])
+            except:
+                pass
+            try:
+                Textos.append(r['snippet'])
+            except:
+                pass
+        a=0

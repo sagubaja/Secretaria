@@ -56,8 +56,9 @@ ClasesConexas = sorted(nx.connected_components(grafoFiscalia2), key = len, rever
 Cardinales=[len(c) for c in ClasesConexas]
 P9999=np.percentile(Cardinales,99.99)
 Cardinales=[c for c in Cardinales if c>P9999]
-C=list(ClasesConexas[3])
+C=list(ClasesConexas[6])
 IdsC=[Codigo for Codigo in C if len(Codigo)==8]
+print(len(IdsC), ' integrantes')
 IntegranteBanda=Fiscalia.loc[Fiscalia['DOCUMENTO']==IdsC[4]] 
 Nombre=IntegranteBanda.iloc[0,17] +' '+ IntegranteBanda.iloc[0,19] + ' '+ IntegranteBanda.iloc[0,20]
 print(Nombre)

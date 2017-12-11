@@ -21,9 +21,9 @@ my_cse_id = "017581525936196135811:nuj2sn_8l7a"
 def News(Frase):
     def google_search(search_term, api_key, cse_id, **kwargs):
         service = build("customsearch", "v1", developerKey=api_key)
-        res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
+        res = service.cse().list(q=search_term, cx=cse_id, sort='date:r:20140324:20140330', **kwargs).execute()
         return res['items']
 
-    results = google_search(Frase, my_api_key, my_cse_id, num=5)
+    results = google_search(Frase, my_api_key, my_cse_id)
     
     return results
