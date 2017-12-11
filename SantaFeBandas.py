@@ -9,9 +9,9 @@ import random
 import re 
 import math
 import networkx as nx
-import News
-from News import News
-#Funcion que convierte articulo en numero
+#import News
+#from News import News
+#F1uncion que convierte articulo en numero
 def ArticuloNum(frase):
     try:
         if np.isnan(frase):
@@ -31,7 +31,13 @@ if respuesta == 'y':
 print("Procesando...")
 TamaNodos=50
 #ID = '99263 - CORREDOR ZAMORA YANIG ADRIAN'  
-
+def AsignarModa(df,col,col1,identificacion):
+    A = list(df[col].loc[df[col1]==identificacion])
+    try:
+        a = statistics.mode(A)
+    except:
+        a = A[0]
+    df[col].loc[df[col1]== identificacion]=a
 ##leer archivo de Fiscalia y policia
 #Fiscalia = pd.read_csv("CAPTRUAS - Fiscalia.csv",";", encoding = "latin-1")
 Policia = pd.read_csv("Data/CAPTURAS - Policia.csv","\t")
@@ -50,7 +56,7 @@ Policia = Policia.applymap(str)
 ## Mapeamos las letras a valores numericos en ARTICULO
 Policia2 = Policia[["JURISESTACIÓNÁREA","NUMEROUNICODENUNCIAS","NOMBRES","APELLIDOS","IDENTIFICACION"]]
 Policia2['IDENTIFICACION']=Policia2['IDENTIFICACION'].str.replace(".0","")
-Policia2['Alias']=Policia2['IDENTIFICACION']+' - '+Policia2['NOMBRES']+' '+Policia2['APELLIDOS']
+#Policia2['Alias']=Policia2['IDENTIFICACION']+' - '+Policia2['NOMBRES']+' '+Policia2['APELLIDOS']
 logico=Policia2.apply(lambda x: (x.loc['NUMEROUNICODENUNCIAS']=='nan') and (x.loc['IDENTIFICACION']=='nan'), axis = 1 )
 Policia2=Policia2.loc[~logico]
 logico1= Policia2.apply(lambda x: x.loc['NUMEROUNICODENUNCIAS']=='nan',axis = 1)
@@ -63,6 +69,9 @@ A = list(logico2.loc[logico2 == True].index)
 AA=list(map(str,A))
 A=['Sin_Identificacion_' + b for b in AA]
 Policia2.loc[logico2,'IDENTIFICACION']=A
+listaID = Policia2["IDENTIFICACION"]
+
+
 #logicoEstacion=Policia2.apply(lambda x: x.loc['JURISESTACIÓNÁREA']== Estacion, axis = 1) 
 #Policia2=Policia2.loc[logicoEstacion]
 # creamos grafos con la estacion solicitada 
@@ -120,26 +129,26 @@ for tup in NombreNoticiaFecha[1:]:
         BusquedaNombres.append(tup)
 
 DF=Policia.loc[Policia['NUMEROUNICODENUNCIAS']==NombreNoticiaFecha[0][1]]
-
-Textos=[]
-print("Desea Buscar las noticias en Google de los " + str(len(Nombres)) + "mimbros de la Banda" + " ?y/n")
-respuesta2 =input()
-if respuesta2=='y':
-    j=0
-    for q in Busquedas:
-        Textos.append(Nombres[j])
-        j+=1
-        try:
-            Resultados=News(q)
-        except:
-            pass
-        for r in Resultados:
-            try:
-                Textos.append(r['title'])
-            except:
-                pass
-            try:
-                Textos.append(r['snippet'])
-            except:
-                pass
-        a=0
+#
+#Textos=[]
+#print("Desea Buscar las noticias en Google de los " + str(len(Nombres)) + "mimbros de la Banda" + " ?y/n")
+#respuesta2 =input()
+#if respuesta2=='y':
+#    j=0
+#    for q in Busquedas:
+#        Textos.append(Nombres[j])
+#        j+=1
+#        try:
+#            Resultados=News(q)
+#        except:
+#            pass
+#        for r in Resultados:
+#            try:
+#                Textos.append(r['title'])
+#            except:
+#                pass
+#            try:
+#                Textos.append(r['snippet'])
+#            except:
+#                pass
+#        a=0
